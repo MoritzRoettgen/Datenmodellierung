@@ -101,3 +101,74 @@ plot <- ggplot(umwelt_tidy, aes(x = gruppe, y = werte, group = Prun.spi, fill = 
   )
 plot
 
+###Boxplots
+plotP <- Datensatz%>%
+  select(Prun.spi, P)%>%
+  ggplot()+
+  geom_boxplot(aes(x = factor(Prun.spi), y = P, group = Prun.spi, fill = as.character(Prun.spi)))+
+  ylab(expression('Phosphor im Boden'*'[kg/ha'^-{1}*']'))+
+  scale_x_discrete(breaks=c("0","1"),labels=c("Abwesend", "Anwesend"))+
+  scale_fill_brewer(name = "Prun.spi", palette = 'Greys')+
+  theme(axis.title.x = element_blank(),
+        legend.position = 'none',
+        axis.line.y = element_line(linetype = 'solid'),
+        axis.line.x = element_line(linetype = 'solid'),
+        panel.background = element_blank())
+
+
+plotK <- Datensatz%>%
+  select(Prun.spi, K)%>%
+  ggplot()+
+  geom_boxplot(aes(x = factor(Prun.spi), y = K, group = Prun.spi, fill = as.character(Prun.spi)))+
+  ylab(expression('Kalium im Boden'*'[kg/ha'^-{1}*']'))+
+  ggtitle('Prunus spinosa')+
+  scale_x_discrete(breaks=c("0","1"),labels=c("Abwesend", "Anwesend"))+
+  scale_fill_brewer(name = "Prun.spi", palette = 'Greys')+
+  theme(axis.title.x = element_blank(),
+        legend.position = 'none',
+        axis.line.y = element_line(linetype = 'solid'),
+        axis.line.x = element_line(linetype = 'solid'),
+        panel.background = element_blank(),
+        plot.title = element_text(hjust = 0.5))
+
+plotPH <- Datensatz%>%
+  select(Prun.spi, PH)%>%
+  ggplot()+
+  geom_boxplot(aes(x = factor(Prun.spi), y = PH, group = Prun.spi, fill = as.character(Prun.spi)))+
+  ylab('pH-Wert des Bodens[PH]')+
+  scale_x_discrete(breaks=c("0","1"),labels=c("Abwesend", "Anwesend"))+
+  scale_fill_brewer(name = "Prun.spi", palette = 'Greys')+
+  theme(axis.title.x = element_blank(),
+        legend.position = 'none',
+        axis.line.y = element_line(linetype = 'solid'),
+        axis.line.x = element_line(linetype = 'solid'),
+        panel.background = element_blank())
+
+plotKAK <- Datensatz%>%
+  select(Prun.spi, KAK)%>%
+  ggplot()+
+  geom_boxplot(aes(x = factor(Prun.spi), y = KAK, group = Prun.spi, fill = as.character(Prun.spi)))+
+  ylab(expression('Kationenaustauschkapazität des Bodens [cmol'[c]* '/kg'^-{1}*']'))+
+  scale_x_discrete(breaks=c("0","1"),labels=c("Abwesend", "Anwesend"))+
+  scale_fill_brewer(name = "Prun.spi", palette = 'Greys')+
+  theme(axis.title.x = element_blank(),
+        legend.position = 'none',
+        axis.line.y = element_line(linetype = 'solid'),
+        axis.line.x = element_line(linetype = 'solid'),
+        panel.background = element_blank())
+
+plotSLOPE <- Datensatz%>%
+  select(Prun.spi, SLOPE)%>%
+  ggplot()+
+  geom_boxplot(aes(x = factor(Prun.spi), y = SLOPE, group = Prun.spi, fill = as.character(Prun.spi)))+
+  ylab('Hangneigung[°]')+
+  scale_x_discrete(breaks=c("0","1"),labels=c("Abwesend", "Anwesend"))+
+  scale_fill_brewer(name = "Prun.spi", palette = 'Greys', labels = c('Abwesend','Anwesend'))+
+  guides(fill = guide_legend(title = "Legende", levels = c('Abwesend','Anwesend')))+
+  theme(axis.title.x = element_blank(),
+        axis.line.y = element_line(linetype = 'solid'),
+        axis.line.x = element_line(linetype = 'solid'),
+        panel.background = element_blank())
+        
+plot_grid(plotP,plotK,plotPH,plotKAK,plotSLOPE,  ncol = 3, nrow = 2, rel_widths = 0.75)
+
