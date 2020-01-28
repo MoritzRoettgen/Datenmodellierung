@@ -6,6 +6,7 @@ library(geoR)
 source("f.cor.plot.R")
 Datensatz <- read_delim("RM_Hausarbeit_Gr_1.6_Prunus.CSV",";", escape_double = FALSE, trim_ws = TRUE, locale = locale(decimal_mark = ","))
 Umweltparameter <- select(Datensatz, 'P','K','PH','KAK','SLOPE')
+umwelt_tidy <- gather(Datensatz, key = gruppe, value = werte, -Prun.spi)
 p <- Datensatz$P
 k <- Datensatz$K
 ph <- Datensatz$PH
@@ -13,66 +14,58 @@ kak <- Datensatz$KAK
 slope <- Datensatz$SLOPE
 
 
-###Nortest wird aktiviert und lillie-Test wir ausgewählt(n>50)----
-lillie.test(p)
-lillie.test(k)
-lillie.test(ph)
-lillie.test(kak)
-lillie.test(slope)
-
-#Es liegen keine normalverteilungen vor daher Transformation
-#Transformation P
+###Test auf Normalverteilungen, Varianzhomogenität und signifkate Unerschiede zwischen Mittelwerten----
+##Transformation P
 p_log <- log(p+1)
 lillie.test(p_log)
-
 p_sqrt <- sqrt(p)
 lillie.test(p_sqrt)
-
 p_positiv <- Datensatz$P + 0.01
 p_box <- bcPower(p_positiv, (boxcoxfit(p_positiv)$lambda))
-lillie.test(p_box)
+lillie.test(aov(p_box~Datensatz$Prun.spi)$residuals)
+bartlett.test(p_box~Datensatz$Prun.spi)
+#Nach Boxcox normalverteilt und homogen, daher ANOVA
+summary(aov(p_box~Datensatz$Prun.spi))
 
-#Transformation K 
+##Transformation K 
 k_log <- log(k)
-lillie.test(k_log)
-
-#Transformation PH
+lillie.test(aov(k_log~Datensatz$Prun.spi)$residuals)
+bartlett.test(k_log~Datensatz$Prun.spi)
+#Nach log normalverteilt und homogen, daher ANOVA
+summary(aov(k_log~Datensatz$Prun.spi))
+##Transformation PH
 ph_log <- log(ph)
-lillie.test(ph_log)
-
+lillie.test(aov(ph_log~Datensatz$Prun.spi)$residuals)
 ph_log10 <- log10(ph)
-lillie.test(ph_log10)
-
+lillie.test(aov(ph_log10~Datensatz$Prun.spi)$residuals)
 ph_sqrt <- sqrt(ph)
-lillie.test(ph_sqrt)
-
-
+lillie.test(aov(ph_sqrt~Datensatz$Prun.spi)$residuals)
 ph_box <- bcPower(ph, (boxcoxfit(ph)$lambda))
-lillie.test(ph_box)
-
-#Transformation KAK
+lillie.test(aov(ph_box~Datensatz$Prun.spi)$residuals)
+#Keine Transformationen hilfrich, daher H-Test
+kruskal.test(Datensatz$PH~Datensatz$Prun.spi)
+##Transformation KAK
 kak_log <- log(kak)
-lillie.test(kak_log)
-
+lillie.test(aov(kak_log~Datensatz$Prun.spi)$residuals)
 kak_log10 <- log10(kak)
-lillie.test(kak_log10)
-
+lillie.test(aov(kak_log10~Datensatz$Prun.spi)$residuals)
 kak_sqrt <- sqrt(kak)
-lillie.test(kak_sqrt)
-
+lillie.test(aov(kak_sqrt~Datensatz$Prun.spi)$residuals)
 kak_box <- bcPower(kak, (boxcoxfit(kak)$lambda))
-lillie.test(kak_box)
-
-#Transformation Slope
+lillie.test(aov(kak_box~Datensatz$Prun.spi)$residuals)
+#Keine Transformationen hilfrich, daher H-Test
+kruskal.test(Datensatz$KAK~Datensatz$Prun.spi)
+##Transformation Slope
 slope_log <- log(slope+1)
-lillie.test(slope_log)
-
-p_sqrt <- sqrt(p)
-lillie.test(p_sqrt)
-
-test <- Datensatz$P + 0.01
-p_box <- bcPower(test, (boxcoxfit(test)$lambda))
-lillie.test(p_box)
+lillie.test(aov(slope_log~Datensatz$Prun.spi)$residuals)
+slope_log10 <- log10(slope+1)
+lillie.test(aov(slope_log10~Datensatz$Prun.spi)$residuals)
+slope_sqrt <- sqrt(slope)
+lillie.test(aov(slope_sqrt~Datensatz$Prun.spi)$residuals)
+slope_box <- bcPower(slope+0.01, (boxcoxfit(slope+0.01)$lambda))
+lillie.test(aov(slope_box~Datensatz$Prun.spi)$residuals)
+#Keine Transformationen hilfrich, daher H-Test
+kruskal.test(Datensatz$SLOPE~Datensatz$Prun.spi)
 
 cor.plot(Umweltparameter)
 
@@ -80,32 +73,31 @@ cor.plot(Umweltparameter)
 aggregate(Datensatz[,c(2:6)],list(PA = Datensatz$Prun.spi),mean)
 aggregate(Datensatz[,c(2:6)],list(PA = Datensatz$Prun.spi),var)
 
-summary(aov(Datensatz$P~Datensatz$Prun.spi))
-summary(aov(p_box~Datensatz$Prun.spi))
-t.test(Datensatz$P~Datensatz$Prun.spi, paired = F , var.eqaual = T)
-t.test(p_box~Datensatz$Prun.spi, paired = F , var.eqaual = T)
-
-summary(aov(Datensatz$K~Datensatz$Prun.spi))
-summary(aov(Datensatz$PH~Datensatz$Prun.spi))
-summary(aov(Datensatz$KAK~Datensatz$Prun.spi))
-summary(aov(Datensatz$SLOPE~Datensatz$Prun.spi))
 
 
-o <- aov(p_box~as.character(Datensatz$Prun.spi))
-lillie.test(o$residuals)
-
-bartlett.test(p_box~as.character(Datensatz$Prun.spi))
-
-pairwise.t.test(p_box,as.character(Datensatz$Prun.spi),p.adjust.method ='bonferroni')
-
-o <- aov(k_log~Datensatz$Prun.spi)
-lillie.test(o$residuals)
-bartlett.test(k_log~Datensatz$Prun.spi)
-
-summary(o)
-pairwise.t.test(k_log,Datensatz$Prun.spi,p.adjust.method ='bonferroni')
-
-kruskal.test(ph~Datensatz$Prun.spi)
+names(Datensatz$Prun.spi) <- c(paste("Category 1\n n=" , length(Datensatz$Prun.spi == 0) , sep=""), paste("Category 2\n n=" , length(Datensatz$Prun.spi ==1) , sep=""))
+par(mfrow= c(3,2))
+boxplot(Datensatz$P~Datensatz$Prun.spi)
+boxplot(Datensatz$K~Datensatz$Prun.spi)
+boxplot(Datensatz$PH~Datensatz$Prun.spi)
+boxplot(Datensatz$KAK~Datensatz$Prun.spi)
+boxplot(Datensatz$SLOPE~Datensatz$Prun.spi)
 
 
+plot <- ggplot(umwelt_tidy, aes(x = gruppe, y = werte, group = Prun.spi, fill = as.character(Prun.spi)))+
+  geom_boxplot()+
+  facet_wrap(~gruppe, scales = 'free')+
+  guides(fill = guide_legend(title = "Legende"),labels = paste(c('Absens','Präsens')))+
+  labs(x ='', y = expression('Messwerte'))+    #y-Achsenbeschriftung festlegen, x-Achse ist in diesem Fall unnötig da die Namen der Arten angezeigt werden
+  theme(panel.background = element_blank(),                                 #Mit element_blank wird der Hintergrund und die Achsenlinien entfernt
+        strip.background = element_blank(),
+        legend.title = element_text(expression('Legende')),#Hintergrund der Nesttschichtitel ausstellen
+        strip.text = element_text(size = 13, family = 'sans', colour = 'black'),       #Schriftart,-größe und -farbe für die Nestschichttitel anpassen
+        axis.line.y = element_line(linetype = 'solid'),
+        axis.line.x = element_line(linetype = 'solid'),#Die y-Achse wird eingeblendet, auf die x-Achse wird verzichtet um nicht das Gefühl von einem möglichen zusammenhang zu vermitteln
+        axis.text.x = element_blank(),      #Schriftart,-größe und -farbe für den x-Achsentitel festlegen
+        axis.ticks.x = element_blank(),                                     #Die x-Achsen-Ticks werden mit elemnt_blank ausgestellt
+        axis.title.y = element_text(size = 15, family = 'sans', colour = 'black')      #Schriftart,-größe und -farbe für den y-Achsentitel festlegen
+  )
+plot
 
