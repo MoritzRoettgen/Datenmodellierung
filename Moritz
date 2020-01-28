@@ -1,0 +1,111 @@
+setwd("C:/Users/mroet/Desktop/Uni/Master/Datenmodellierung/Hausarbeit")
+library(tidyverse)
+library(nortest)
+library(car)
+library(geoR)
+source("f.cor.plot.R")
+Datensatz <- read_delim("RM_Hausarbeit_Gr_1.6_Prunus.CSV",";", escape_double = FALSE, trim_ws = TRUE, locale = locale(decimal_mark = ","))
+Umweltparameter <- select(Datensatz, 'P','K','PH','KAK','SLOPE')
+p <- Datensatz$P
+k <- Datensatz$K
+ph <- Datensatz$PH
+kak <- Datensatz$KAK
+slope <- Datensatz$SLOPE
+
+
+###Nortest wird aktiviert und lillie-Test wir ausgewählt(n>50)----
+lillie.test(p)
+lillie.test(k)
+lillie.test(ph)
+lillie.test(kak)
+lillie.test(slope)
+
+#Es liegen keine normalverteilungen vor daher Transformation
+#Transformation P
+p_log <- log(p+1)
+lillie.test(p_log)
+
+p_sqrt <- sqrt(p)
+lillie.test(p_sqrt)
+
+p_positiv <- Datensatz$P + 0.01
+p_box <- bcPower(p_positiv, (boxcoxfit(p_positiv)$lambda))
+lillie.test(p_box)
+
+#Transformation K 
+k_log <- log(k)
+lillie.test(k_log)
+
+#Transformation PH
+ph_log <- log(ph)
+lillie.test(ph_log)
+
+ph_log10 <- log10(ph)
+lillie.test(ph_log10)
+
+ph_sqrt <- sqrt(ph)
+lillie.test(ph_sqrt)
+
+
+ph_box <- bcPower(ph, (boxcoxfit(ph)$lambda))
+lillie.test(ph_box)
+
+#Transformation KAK
+kak_log <- log(kak)
+lillie.test(kak_log)
+
+kak_log10 <- log10(kak)
+lillie.test(kak_log10)
+
+kak_sqrt <- sqrt(kak)
+lillie.test(kak_sqrt)
+
+kak_box <- bcPower(kak, (boxcoxfit(kak)$lambda))
+lillie.test(kak_box)
+
+#Transformation Slope
+slope_log <- log(slope+1)
+lillie.test(slope_log)
+
+p_sqrt <- sqrt(p)
+lillie.test(p_sqrt)
+
+test <- Datensatz$P + 0.01
+p_box <- bcPower(test, (boxcoxfit(test)$lambda))
+lillie.test(p_box)
+
+cor.plot(Umweltparameter)
+
+#####
+aggregate(Datensatz[,c(2:6)],list(PA = Datensatz$Prun.spi),mean)
+aggregate(Datensatz[,c(2:6)],list(PA = Datensatz$Prun.spi),var)
+
+summary(aov(Datensatz$P~Datensatz$Prun.spi))
+summary(aov(p_box~Datensatz$Prun.spi))
+t.test(Datensatz$P~Datensatz$Prun.spi, paired = F , var.eqaual = T)
+t.test(p_box~Datensatz$Prun.spi, paired = F , var.eqaual = T)
+
+summary(aov(Datensatz$K~Datensatz$Prun.spi))
+summary(aov(Datensatz$PH~Datensatz$Prun.spi))
+summary(aov(Datensatz$KAK~Datensatz$Prun.spi))
+summary(aov(Datensatz$SLOPE~Datensatz$Prun.spi))
+
+
+o <- aov(p_box~as.character(Datensatz$Prun.spi))
+lillie.test(o$residuals)
+
+bartlett.test(p_box~as.character(Datensatz$Prun.spi))
+
+pairwise.t.test(p_box,as.character(Datensatz$Prun.spi),p.adjust.method ='bonferroni')
+
+o <- aov(k_log~Datensatz$Prun.spi)
+lillie.test(o$residuals)
+bartlett.test(k_log~Datensatz$Prun.spi)
+
+summary(o)
+pairwise.t.test(k_log,Datensatz$Prun.spi,p.adjust.method ='bonferroni')
+
+kruskal.test(ph~Datensatz$Prun.spi)
+
+
+
