@@ -1,8 +1,11 @@
 setwd("C:/Users/mroet/Desktop/Uni/Master/Datenmodellierung/Hausarbeit")
+###Vorbereitung----
 library(tidyverse)
 library(nortest)
+library(usdm)
 library(car)
 library(geoR)
+library(cowplot)
 source("f.cor.plot.R")
 Datensatz <- read_delim("RM_Hausarbeit_Gr_1.6_Prunus.CSV",";", escape_double = FALSE, trim_ws = TRUE, locale = locale(decimal_mark = ","))
 Umweltparameter <- select(Datensatz, 'P','K','PH','KAK','SLOPE')
@@ -86,6 +89,7 @@ boxplot(Datensatz$SLOPE~Datensatz$Prun.spi)
 
 plot <- ggplot(umwelt_tidy, aes(x = gruppe, y = werte, group = Prun.spi, fill = as.character(Prun.spi)))+
   geom_boxplot()+
+  geom_text(aes(x= 2, y= 110, label = '100% = n863'), size = 8,family = 'sans', colour = 'black')+          
   facet_wrap(~gruppe, scales = 'free')+
   guides(fill = guide_legend(title = "Legende"),labels = paste(c('Absens','Präsens')))+
   labs(x ='', y = expression('Messwerte'))+    #y-Achsenbeschriftung festlegen, x-Achse ist in diesem Fall unnötig da die Namen der Arten angezeigt werden
@@ -169,6 +173,112 @@ plotSLOPE <- Datensatz%>%
         axis.line.y = element_line(linetype = 'solid'),
         axis.line.x = element_line(linetype = 'solid'),
         panel.background = element_blank())
-        
+
+
 plot_grid(plotP,plotK,plotPH,plotKAK,plotSLOPE,  ncol = 3, nrow = 2, rel_widths = 0.75)
 
+###Aufgabe 2 ----
+attach(Datensatz)
+Datensatz$Prun.spi <- as.factor(Datensatz$Prun.spi)
+par(mfrow=c(2,3))
+spineplot(P,as.factor(Prun.spi))
+spineplot(K,as.factor(Prun.spi))
+spineplot(PH,as.factor(Prun.spi))
+spineplot(KAK,as.factor(Prun.spi))
+spineplot(SLOPE,as.factor(Prun.spi))
+
+m.lr.0 <- glm(Prun.spi~1, family = 'binomial')
+
+m.lr.P <- glm(Prun.spi~P, family = 'binomial')
+summary(m.lr.P)
+m.lr.P2 <- glm(Prun.spi~P+I(P^2), family = 'binomial')
+anova(m.lr.0,m.lr.P, test = 'Chisq')
+anova(m.lr.P,m.lr.P2, test = 'Chisq')
+
+m.lr.K <- glm(Prun.spi~K, family = 'binomial')
+summary(m.lr.K)
+m.lr.K2 <- glm(Prun.spi~K+I(K^2), family = 'binomial')
+anova(m.lr.0,m.lr.K, test = 'Chisq')
+anova(m.lr.K,m.lr.K2, test = 'Chisq') #Keine Verbesserung dur Quadratischen ter,
+
+m.lr.PH <- glm(Prun.spi~PH, family = 'binomial')
+summary(m.lr.PH)
+m.lr.PH2 <- glm(Prun.spi~PH+I(PH^2), family = 'binomial')
+anova(m.lr.0,m.lr.PH, test = 'Chisq')
+anova(m.lr.PH, m.lr.PH2, test = 'Chisq') # Keine Verbesserung, unimodales Modell wird behalten
+
+m.lr.KAK <- glm(Prun.spi~KAK, family = 'binomial')
+summary(m.lr.KAK)
+m.lr.KAK2<-glm(Prun.spi~KAK+I(KAK^2), family = 'binomial')
+anova(m.lr.0,m.lr.KAK, test = 'Chisq')
+anova(m.lr.KAK,m.lr.KAK2, test = 'Chisq')
+
+m.lr.SLOPE <- glm(Prun.spi~SLOPE, family = 'binomial')
+summary(m.lr.SLOPE)
+m.lr.SLOPE2 <- glm(Prun.spi~SLOPE+I(SLOPE^2), family = 'binomial')
+anova(m.lr.0,m.lr.SLOPE, test = 'Chisq')
+anova(m.lr.SLOPE,m.lr.SLOPE2, test = 'Chisq')# Keine Verbesserung
+
+
+#PH hat mit einer Likliehood Ratio von 12.124 den höchsten Einfluss auf Prunus spinosa
+#Der Zusammenhang ist hoch signifikant mit postivem Einfluss
+#SLOPE hat mit einer LR von 8.0999 ebenfalls einen Einfluss auf das Vrokommen von Prunus
+#Der Zusammenhang ist höchst Signifikant mit postitvem Einfluss
+
+
+#Visualisierung
+cf<-coefficients(m.lr.PH) #Koeffizienten des Modells extrahieren
+plot(PH,as.character(Prun.spi),xlab="pH",ylab="Prunus spinos",pch=20) #Streudiagramm mit 0/1-Werten
+x<-seq(min(PH),max(PH),0.01) #Werte für x-Achse erzeugen
+y<-1/(1+exp(-(cf[1]+cf[2]*x))) #Einsetzen der Koef. in die log. Gleichung
+lines(x,y) #Plotten der gefitteten Kurve
+
+cf<-coefficients(m.lr.SLOPE) #Koeffizienten des Modells extrahieren
+plot(SLOPE,as.character(Prun.spi),xlab="Hangneigung [°]",ylab="Prunus Spinosa",pch=20) #Streudiagramm mit 0/1-Werten
+x<-seq(min(SLOPE),max(SLOPE),0.01) #Werte für x-Achse erzeugen
+y<-1/(1+exp(-(cf[1]+cf[2]*x))) #Einsetzen der Koef. in die log. Gleichung
+lines(x,y) #Plotten der gefitteten Kurve
+
+
+#Multiples modell erstellen
+library(memisc)
+m.lr.PH.SLOPE <- update(m.lr.PH,~.+SLOPE)
+anova(m.lr.PH, m.lr.PH.SLOPE, test = 'Chisq')
+mtable(m.lr.PH.SLOPE,summary.stats = c('Nagelkerke R-sq.','p','Likelihood-ratio','Deviance','AIC','BIC','N'))
+
+#Erweitern durch andere Parameter
+m.lr.PH.SLOPE.P <- update(m.lr.PH.SLOPE,~.+P)
+anova(m.lr.PH.SLOPE.P,m.lr.PH.SLOPE, test = 'Chisq')# Keine signifikante Modellverbesserung durch P
+m.lr.PH.SLOPE.K <- update(m.lr.PH.SLOPE,~.+K)
+anova(m.lr.PH.SLOPE.K,m.lr.PH.SLOPE, test = 'Chisq')# Signifikante Modellverbesserung durch K
+mtable(m.lr.PH.SLOPE, m.lr.PH.SLOPE.K,summary.stats = c('Nagelkerke R-sq.','p','Likelihood-ratio','Deviance','AIC','BIC','N') )
+m.lr.PH.SLOPE.KAK <- update(m.lr.PH.SLOPE,~.+KAK)
+anova(m.lr.PH.SLOPE.KAK,m.lr.PH.SLOPE, test = 'Chisq')# Keine signifikante Modellverbesserung durch KAK
+
+
+#Automatiesierte Methode
+m.full<-glm(Prun.spi~P+K+KAK+PH+SLOPE,family=binomial)
+m.step.bw<-step(m.full,k=2)
+summary(m.step.bw)
+#Die Automatisierte Methode kommt auf das selbe Ergebnis wie die manuelle Methode
+#Das minimal adäquate Modell besteht aus den Parametern PH, Slope und K
+
+
+#Erweitern von PH,SLOPE und K
+m.lr.PH.SLOPE.K.P <- update(m.lr.PH.SLOPE.K,~.+P)
+anova(m.lr.PH.SLOPE.K.P,m.lr.PH.SLOPE.K, test = 'Chisq')# Keine signifikante Modellverbesserung durch P
+m.lr.PH.SLOPE.K.KAK <- update(m.lr.PH.SLOPE.K,~.+KAK)
+anova(m.lr.PH.SLOPE.K.KAK,m.lr.PH.SLOPE.K, test = 'Chisq')# Keine signifikante Modellverbesserung durch KAK
+
+
+
+#Visualisierung des minimaal adäquaten Modells
+library(lattice)
+x<-do.breaks(c(min(PH),max(PH)),12) #x-Achsenwerte (ph) erzeugen
+y<-do.breaks(c(min(SLOPE),max(SLOPE)),12) #y-Achsenwerte (hoehe) erzeugen
+g<-expand.grid(PH=x,SLOPE=y) #Grid erzeugen mit Wertekombinationen aus x und y
+g$z<-predict(m.lr.PH.SLOPE,type="response",newdata = g) #z- Werte (Vorhersagen) errechnen
+#wireframe-Grafik erzeugen
+#screen steuert Betrachtungswinkel der 3D-Grafik
+wireframe(z~PH+SLOPE,scales=list(arrows=FALSE),screen = list(z = -30, x = -60),
+          xlab="pH",ylab="Hangneigung",zlab=list("Prunus spinosa",rot=90),data=g)
