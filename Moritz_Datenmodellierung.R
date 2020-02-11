@@ -5,68 +5,65 @@ library(usdm)
 library(car)
 library(geoR)
 library(cowplot)
+library(PresenceAbsence)
 source("f.cor.plot.R")
-Datensatz <- read_delim("RM_Hausarbeit_Gr_1.6_Prunus.CSV",";", escape_double = FALSE, trim_ws = TRUE, locale = locale(decimal_mark = ","))
-umwelt_tidy <- gather(Datensatz, key = gruppe, value = werte, -Prun.spi)
-p <- Datensatz$P
-k <- Datensatz$K
-ph <- Datensatz$PH
-kak <- Datensatz$KAK
-slope <- Datensatz$SLOPE
+Datensatz <- read.csv2("C:/Users/mroet/Desktop/Uni/Master/Datenmodellierung/Hausarbeit/Datenmodellierung/RM_Hausarbeit_Gr_1.6_Prunus.CSV")
+attach(Datensatz)
 
 
 ###Test auf Normalverteilungen, Varianzhomogenität und signifkate Unerschiede zwischen Mittelwerten----
 ##Transformation P
-p_log <- log(p+1)
+lillie.test(P)
+p_log <- log(P+1)
 lillie.test(p_log)
-p_sqrt <- sqrt(p)
+p_sqrt <- sqrt(P)
 lillie.test(p_sqrt)
-p_positiv <- Datensatz$P + 0.01
+p_positiv <- P + 0.01
 p_box <- bcPower(p_positiv, (boxcoxfit(p_positiv)$lambda))
-lillie.test(aov(p_box~Datensatz$Prun.spi)$residuals)
-bartlett.test(p_box~Datensatz$Prun.spi)
+lillie.test(aov(p_box~Prun.spi)$residuals)
+bartlett.test(p_box~Prun.spi)
 #Nach Boxcox normalverteilt und homogen, daher ANOVA
-summary(aov(p_box~Datensatz$Prun.spi))
+summary(aov(p_box~Prun.spi))
 
 ##Transformation K 
-k_log <- log(k)
-lillie.test(aov(k_log~Datensatz$Prun.spi)$residuals)
-bartlett.test(k_log~Datensatz$Prun.spi)
+k_log <- log(K)
+lillie.test(aov(k_log~Prun.spi)$residuals)
+bartlett.test(k_log~Prun.spi)
 #Nach log normalverteilt und homogen, daher ANOVA
-summary(aov(k_log~Datensatz$Prun.spi))
+summary(aov(k_log~Prun.spi))
 ##Transformation PH
-ph_log <- log(ph)
-lillie.test(aov(ph_log~Datensatz$Prun.spi)$residuals)
-ph_log10 <- log10(ph)
-lillie.test(aov(ph_log10~Datensatz$Prun.spi)$residuals)
-ph_sqrt <- sqrt(ph)
-lillie.test(aov(ph_sqrt~Datensatz$Prun.spi)$residuals)
-ph_box <- bcPower(ph, (boxcoxfit(ph)$lambda))
-lillie.test(aov(ph_box~Datensatz$Prun.spi)$residuals)
+ph_log <- log(PH)
+lillie.test(aov(ph_log~Prun.spi)$residuals)
+ph_log10 <- log10(PH)
+lillie.test(aov(ph_log10~Prun.spi)$residuals)
+ph_sqrt <- sqrt(PH)
+lillie.test(aov(ph_sqrt~Prun.spi)$residuals)
+ph_box <- bcPower(PH, (boxcoxfit(PH)$lambda))
+lillie.test(aov(ph_box~Prun.spi)$residuals)
 #Keine Transformationen hilfrich, daher H-Test
-kruskal.test(Datensatz$PH~Datensatz$Prun.spi)
+kruskal.test(PH~Prun.spi)
 ##Transformation KAK
-kak_log <- log(kak)
-lillie.test(aov(kak_log~Datensatz$Prun.spi)$residuals)
-kak_log10 <- log10(kak)
-lillie.test(aov(kak_log10~Datensatz$Prun.spi)$residuals)
-kak_sqrt <- sqrt(kak)
-lillie.test(aov(kak_sqrt~Datensatz$Prun.spi)$residuals)
-kak_box <- bcPower(kak, (boxcoxfit(kak)$lambda))
-lillie.test(aov(kak_box~Datensatz$Prun.spi)$residuals)
+kak_log <- log(KAK)
+lillie.test(aov(kak_log~Prun.spi)$residuals)
+kak_log10 <- log10(KAK)
+lillie.test(aov(kak_log10~Prun.spi)$residuals)
+kak_sqrt <- sqrt(KAK)
+lillie.test(aov(kak_sqrt~Prun.spi)$residuals)
+kak_box <- bcPower(KAK, (boxcoxfit(KAK)$lambda))
+lillie.test(aov(kak_box~Prun.spi)$residuals)
 #Keine Transformationen hilfrich, daher H-Test
-kruskal.test(Datensatz$KAK~Datensatz$Prun.spi)
+kruskal.test(KAK~Prun.spi)
 ##Transformation Slope
-slope_log <- log(slope+1)
-lillie.test(aov(slope_log~Datensatz$Prun.spi)$residuals)
-slope_log10 <- log10(slope+1)
-lillie.test(aov(slope_log10~Datensatz$Prun.spi)$residuals)
-slope_sqrt <- sqrt(slope)
-lillie.test(aov(slope_sqrt~Datensatz$Prun.spi)$residuals)
-slope_box <- bcPower(slope+0.01, (boxcoxfit(slope+0.01)$lambda))
-lillie.test(aov(slope_box~Datensatz$Prun.spi)$residuals)
+slope_log <- log(SLOPE+1)
+lillie.test(aov(slope_log~Prun.spi)$residuals)
+slope_log10 <- log10(SLOPE+1)
+lillie.test(aov(slope_log10~Prun.spi)$residuals)
+slope_sqrt <- sqrt(SLOPE)
+lillie.test(aov(slope_sqrt~Prun.spi)$residuals)
+slope_box <- bcPower(SLOPE+0.01, (boxcoxfit(SLOPE+0.01)$lambda))
+lillie.test(aov(slope_box~Prun.spi)$residuals)
 #Keine Transformationen hilfrich, daher H-Test
-kruskal.test(Datensatz$SLOPE~Datensatz$Prun.spi)
+kruskal.test(SLOPE~Prun.spi)
 
 cor.plot(Datensatz)
 
@@ -152,14 +149,18 @@ plotSLOPE <- Datensatz%>%
 plot_grid(plotP,plotK,plotPH,plotKAK,plotSLOPE,  ncol = 3, nrow = 2, rel_widths = 0.75)
 
 ###Aufgabe 2 ----
-attach(Datensatz)
-Datensatz$Prun.spi <- as.factor(Datensatz$Prun.spi)
+detach("package:car", unload = TRUE)
+vif(Datensatz[,-c(1)])
+#Alle Werte liegen zwischen 1 und 1.9 daher liegt keine Multikollinearität vor
+library(car)
+
 par(mfrow=c(2,3))
 spineplot(P,as.factor(Prun.spi))
 spineplot(K,as.factor(Prun.spi))
 spineplot(PH,as.factor(Prun.spi))
 spineplot(KAK,as.factor(Prun.spi))
 spineplot(SLOPE,as.factor(Prun.spi))
+par(mfrow=c(1,1))
 
 m.lr.0 <- glm(Prun.spi~1, family = 'binomial')
 
@@ -213,12 +214,17 @@ x<-seq(min(SLOPE),max(SLOPE),0.01) #Werte für x-Achse erzeugen
 y<-1/(1+exp(-(cf[1]+cf[2]*x))) #Einsetzen der Koef. in die log. Gleichung
 lines(x,y) #Plotten der gefitteten Kurve
 
-
 #Multiples modell erstellen
 library(memisc)
 m.lr.PH.SLOPE <- update(m.lr.PH,~.+SLOPE)
 anova(m.lr.PH, m.lr.PH.SLOPE, test = 'Chisq')
 mtable(m.lr.PH.SLOPE,summary.stats = c('Nagelkerke R-sq.','p','Likelihood-ratio','Deviance','AIC','BIC','N'))
+
+m.lr.PH.P <- update(m.lr.PH,~.+P)
+anova(m.lr.PH, m.lr.PH.P, test = 'Chisq')
+mtable(m.lr.PH.P,summary.stats = c('Nagelkerke R-sq.','p','Likelihood-ratio','Deviance','AIC','BIC','N'))
+
+
 
 #Erweitern durch andere Parameter
 m.lr.PH.SLOPE.P <- update(m.lr.PH.SLOPE,~.+P)
@@ -256,3 +262,28 @@ g$z<-predict(m.lr.PH.SLOPE,type="response",newdata = g) #z- Werte (Vorhersagen) 
 #screen steuert Betrachtungswinkel der 3D-Grafik
 wireframe(z~PH+SLOPE,scales=list(arrows=FALSE),screen = list(z = -30, x = -60),
           xlab="pH",ylab="Hangneigung",zlab=list("Prunus spinosa",rot=90),data=g)
+
+
+###Pkrit Aufgabe 4-----
+
+prun.pH<-glm(Prun.spi~PH,family='binomial')
+x<-seq(min(PH),max(PH),0.01)
+y<-predict(prun.pH, newdata = list(PH=x),type="response")
+plot(y~x,xlab="ph",ylab="p (Prunus spinosa)",type="l")
+abline(0.2,0,lty=2)
+
+
+prun.lr.m<-glm(Prun.spi~PH+SLOPE+K,family='binomial')
+prun.pred<-prun.lr.m$fitted.values
+prun.pred.0.5<-as.factor(as.numeric(prun.pred>0.5))
+
+table(prun.pred.0.5,Prun.spi)
+prun.eval<-data.frame(rownames(Datensatz),Prun.spi,prun.pred)
+cmx(prun.eval)
+presence.absence.accuracy(prun.eval)
+
+error.threshold.plot(prun.eval,opt.thresholds=TRUE,vert.lines=TRUE,
+                     opt.methods=c(1,2,4,5,7),line.type=c(2,2,1,1),col=c("black","blue","red","green"),
+                     main="pkrit-Optimierung",ylab="Modellgüte",xlab="Schwellenwert pkrit")
+
+auc.roc.plot(prun.eval,opt.thresholds = TRUE,opt.methods=c(1,2,4,5))
