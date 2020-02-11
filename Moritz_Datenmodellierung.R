@@ -229,11 +229,22 @@ mtable(m.lr.PH.P,summary.stats = c('Nagelkerke R-sq.','p','Likelihood-ratio','De
 #Erweitern durch andere Parameter
 m.lr.PH.SLOPE.P <- update(m.lr.PH.SLOPE,~.+P)
 anova(m.lr.PH.SLOPE.P,m.lr.PH.SLOPE, test = 'Chisq')# Keine signifikante Modellverbesserung durch P
+mtable(m.lr.PH.SLOPE, m.lr.PH.SLOPE.P,summary.stats = c('Nagelkerke R-sq.','p','Likelihood-ratio','Deviance','AIC','BIC','N') )
 m.lr.PH.SLOPE.K <- update(m.lr.PH.SLOPE,~.+K)
 anova(m.lr.PH.SLOPE.K,m.lr.PH.SLOPE, test = 'Chisq')# Signifikante Modellverbesserung durch K
 mtable(m.lr.PH.SLOPE, m.lr.PH.SLOPE.K,summary.stats = c('Nagelkerke R-sq.','p','Likelihood-ratio','Deviance','AIC','BIC','N') )
 m.lr.PH.SLOPE.KAK <- update(m.lr.PH.SLOPE,~.+KAK)
 anova(m.lr.PH.SLOPE.KAK,m.lr.PH.SLOPE, test = 'Chisq')# Keine signifikante Modellverbesserung durch KAK
+mtable(m.lr.PH.SLOPE, m.lr.PH.SLOPE.KAK,summary.stats = c('Nagelkerke R-sq.','p','Likelihood-ratio','Deviance','AIC','BIC','N') )
+
+
+m.lr.PH.SLOPE.K.P <- update(m.lr.PH.SLOPE.K,~.+P)
+anova(m.lr.PH.SLOPE.K,m.lr.PH.SLOPE.K.P, test = 'Chisq')# Keine signifikante Modellverbesserung durch P
+mtable(m.lr.PH.SLOPE.K, m.lr.PH.SLOPE.K.P,summary.stats = c('Nagelkerke R-sq.','p','Likelihood-ratio','Deviance','AIC','BIC','N') )
+
+m.lr.PH.SLOPE.K.KAK <- update(m.lr.PH.SLOPE.K,~.+KAK)
+anova(m.lr.PH.SLOPE.K,m.lr.PH.SLOPE.K.KAK, test = 'Chisq')# Keine signifikante Modellverbesserung durch P
+mtable(m.lr.PH.SLOPE.K, m.lr.PH.SLOPE.K.KAK,summary.stats = c('Nagelkerke R-sq.','p','Likelihood-ratio','Deviance','AIC','BIC','N') )
 
 
 #Automatiesierte Methode
@@ -244,15 +255,8 @@ summary(m.step.bw)
 #Das minimal adäquate Modell besteht aus den Parametern PH, Slope und K
 
 
-#Erweitern von PH,SLOPE und K
-m.lr.PH.SLOPE.K.P <- update(m.lr.PH.SLOPE.K,~.+P)
-anova(m.lr.PH.SLOPE.K.P,m.lr.PH.SLOPE.K, test = 'Chisq')# Keine signifikante Modellverbesserung durch P
-m.lr.PH.SLOPE.K.KAK <- update(m.lr.PH.SLOPE.K,~.+KAK)
-anova(m.lr.PH.SLOPE.K.KAK,m.lr.PH.SLOPE.K, test = 'Chisq')# Keine signifikante Modellverbesserung durch KAK
 
-
-
-#Visualisierung des minimaal adäquaten Modells
+#Visualisierung des minimal adäquaten Modells
 library(lattice)
 x<-do.breaks(c(min(PH),max(PH)),12) #x-Achsenwerte (ph) erzeugen
 y<-do.breaks(c(min(SLOPE),max(SLOPE)),12) #y-Achsenwerte (hoehe) erzeugen
@@ -262,6 +266,26 @@ g$z<-predict(m.lr.PH.SLOPE,type="response",newdata = g) #z- Werte (Vorhersagen) 
 #screen steuert Betrachtungswinkel der 3D-Grafik
 wireframe(z~PH+SLOPE,scales=list(arrows=FALSE),screen = list(z = -30, x = -60),
           xlab="pH",ylab="Hangneigung",zlab=list("Prunus spinosa",rot=90),data=g)
+
+x<-do.breaks(c(min(K),max(K)),12) #x-Achsenwerte (ph) erzeugen
+y<-do.breaks(c(min(PH),max(PH)),12) #y-Achsenwerte (hoehe) erzeugen
+g<-expand.grid(K=x,PH=y) #Grid erzeugen mit Wertekombinationen aus x und y
+g$z<-predict(m.lr.PH.K,type="response",newdata = g) #z- Werte (Vorhersagen) errechnen
+#wireframe-Grafik erzeugen
+#screen steuert Betrachtungswinkel der 3D-Grafik
+wireframe(z~K+PH,scales=list(arrows=FALSE),screen = list(z = -30, x = -60),
+          xlab="K",ylab="pH",zlab=list("Prunus spinosa",rot=90),data=g)
+
+
+x<-do.breaks(c(min(K),max(K)),12) #x-Achsenwerte (ph) erzeugen
+y<-do.breaks(c(min(SLOPE),max(SLOPE)),12) #y-Achsenwerte (hoehe) erzeugen
+g<-expand.grid(K=x,SLOPE=y) #Grid erzeugen mit Wertekombinationen aus x und y
+g$z<-predict(m.lr.K.SLOPE,type="response",newdata = g) #z- Werte (Vorhersagen) errechnen
+#wireframe-Grafik erzeugen
+#screen steuert Betrachtungswinkel der 3D-Grafik
+wireframe(z~K+SLOPE,scales=list(arrows=FALSE),screen = list(z = -30, x = -60),
+          xlab="K",ylab="Hangneigung",zlab=list("Prunus spinosa",rot=90),data=g)
+
 
 
 ###Pkrit Aufgabe 4-----
